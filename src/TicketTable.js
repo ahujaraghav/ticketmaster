@@ -1,6 +1,38 @@
 import React from 'react';
+import axios from 'axios';
+
+import TicketRow from './TicketRow'
 
 class TicketTable extends React.Component {
+
+    handleDelete = (ticket) => {
+
+        const code = ticket.ticket_code
+        axios.delete(`https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`)
+            .then((response) => {
+                if (response.data.notice == 'Successfully removed the ticket') {
+                    this.props.deleteTicket(ticket)
+                }
+            })
+            .catch()
+
+    }
+
+    handleStatus = (ticket, e) => {
+        const cb = e.target
+        cb.disabled = true
+        cb.style.cursor = 'progress'
+
+        ticket.status = ticket.status == 'open' ? 'closed' : 'open'
+        const code = ticket.ticket_code
+        axios.put(`https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`, ticket)
+            .then((response) => {
+                cb.disabled = false
+                cb.style.cursor = 'default'
+                this.props.handleStatusChange(response)
+            })
+    }
+
     render() {
         return (
             <form class="col-9">
@@ -11,24 +43,17 @@ class TicketTable extends React.Component {
                         <th scope="col">Department</th>
                         <th scope="col">Priority</th>
                         <th scope="col">Message</th>
-                        <th scope="col">Status</th>
+                        <th scope="col" class="pointer" onClick={this.props.handleSort}>Status<i class={this.props.sort == 'status' ? "fa fa-fw fa-sort-down" : "fa fa-fw "}></i></th>
                     </thead>
                     <tbody class="">
                         {
                             this.props.tickets.map((ticket) => {
                                 return (
-                                    <tr >
-                                        <td class="pointer" onDoubleClick={(e)=>{
-                                            this.props.deleteTicket(ticket)
-                                        }}>{ticket.ticket_code}</td>
-                                        <td>{ticket.name}</td>
-                                        <td>{ticket.department}</td>
-                                        <td>{ticket.priority}</td>
-                                        <td>{ticket.message}</td>
-                                        <td><input id={ticket.id} type="checkbox" onChange={(e)=>{
-                                            this.props.handleStatusChange(ticket,e)
-                                        }} checked={ticket.status == 'open' ? false : true}/></td>
-                                    </tr>
+                                    <TicketRow
+                                        ticket={ticket}
+                                        handleDelete={this.handleDelete}
+                                        handleStatus={this.handleStatus}
+                                    />
                                 )
                             })
                         }

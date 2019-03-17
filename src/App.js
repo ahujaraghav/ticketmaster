@@ -1,155 +1,159 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 
+
 import Header from './Header'
 import TicketForm from './TicketForm';
 import TicketTable from './TicketTable';
+import Charts from './Charts'
 
 class App extends Component {
 
+  // ! Main tickets array, filter applied and search box input is maintained here
   constructor() {
     super()
     this.state = {
       tickets: [],
-      filterTickets: [],
-      filter: 'all'
+      filter: 'All',
+      search: '',
+      sort:''
     }
   }
 
-  // ! Filter tickets reseting again and again
+  // ? Add Ticket
+  // ! axios is used inside child component, after successfull operation ticket is added to main tickets
   addTicket = (ticket) => {
-    console.log(ticket)
     this.setState((prevState) => ({
-      tickets: [...prevState.tickets, ticket],
-      filterTickets: [...prevState.tickets, ticket],
+      tickets: [...prevState.tickets, ticket]
     }))
   }
 
+  // ? Delete Ticket
+  // ! axios is used inside child component, after successfull operation ticket is deleted from main tickets
   deleteTicket = (ticket) => {
     const code = ticket.ticket_code
-    axios.delete(`https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`)
-      .then((response) => {
-        if (response.data.notice == 'Successfully removed the ticket') {
-          this.setState((prevState) => {
-            const array = [...prevState.tickets]
-            const index = array.findIndex((ticket) => {
-              return ticket.ticket_code == code
-            })
-            array.splice(index, 1)
-            return {
-              // ! check this
-              tickets: array,
-              filterTickets: array
-            }
-          })
-        }
+
+    this.setState((prevState) => {
+      const array = [...prevState.tickets]
+      const index = array.findIndex((ticket) => {
+        return ticket.ticket_code == code
       })
-      .catch()
+
+      array.splice(index, 1)
+
+      return {
+        tickets: array
+      }
+    })
   }
 
-  applySearch = (keyword) => {
-    console.log(keyword)
-    const search = keyword
+  // ? Search Change
+  // ! Search is not maintained by child component
+  handleSearchChange = (e) => {
+    const search = e.target.value
+    this.setState(() => ({ search }))
+  }
+
+  // ? Filter Change
+  // ! Filter is not maintained by child component
+  handleFilterChange = (e) => {
+    const filter = e.target.id
+    this.setState(() => ({ filter }))
+  }
+
+  // ? Status Change
+  // ! axios is used inside child component after successful operation, ticket is changed in main tickets
+  handleStatusChange = (response) => {
+    this.setState((prevState) => {
+      let array = [...prevState.tickets]
+      let index = array.findIndex(function (ticket) {
+        return ticket.ticket_code == response.data.ticket_code
+      })
+      array.splice(index, 1, response.data)
+      return {
+        tickets: array,
+      }
+    })
+  }
+
+  handleSort = ()=>{
+    let sort = this.state.sort
+    console.log(sort)
+    if(sort){
+      sort=''
+    }else{
+      sort='status'
+    }
+    
+    this.setState(()=>({sort}))
+  }
+
+  // - Applying filter's
+  // ! this method returns a filter array, which is passed to ticket-table for building the list.
+  // ? apply filter first apply filter according to state, then apply search according to search in state and return the array.
+  applyFilters = () => {
     const array = this.state.tickets
-    const filterArray = array.filter((ticket) => {
+    const filter = this.state.filter
+    const search = this.state.search
+
+    let filterArray
+
+    if (filter == 'All') {
+      filterArray = array
+    } else {
+      filterArray = array.filter((ticket) => {
+        return ticket.priority == filter
+      })
+    }
+
+    let searchArray = filterArray.filter((ticket) => {
       if (ticket.ticket_code.includes(search) || search.length == 0) {
         return ticket
       }
     })
-    this.applyFilters(filterArray)
-  }
 
-  handleFilterChange = (val) => {
-    const value = val
-    let array;
-    this.setState((prevState) => {
-      array = prevState.tickets
-      this.applyFilters(array)
-      return {
-        filter: value
-      }
-    })
-
-    
-  }
-
-  // applyFilters = (filterPriority) => {
-  //   this.setState((prevState) => {
-  //     const array = [...prevState.tickets]
-
-  //     if (filterPriority == 'all') {
-  //       return {
-  //         filterTickets: array,
-  //         filter: 'all'
-  //       }
-  //     }
-
-  //     return {
-  //       filterTickets: array.filter((ticket) => {
-  //         return ticket.priority == filterPriority
-  //       }),
-  //       filter: filterPriority
-  //     }
-  //   })
-  // }
-
-  applyFilters = (filterArray) => {
-    const array = filterArray
-    this.setState((prevState) => {
-      const filter = prevState.filter
-      if (filter == 'all') {
-        return {
-          filterTickets: array,
-        }
-      }
-
-      const filterArray = array.filter((ticket) => {
-        return ticket.priority == filter
-      })
-
-      return {
-        filterTickets: filterArray
-      }
-    })
-  }
-
-  handleStatusChange = (ticket, e) => {
-    const cb = e.target
-    cb.disabled = true
-    cb.style.cursor = 'progress'
-
-    ticket.status = ticket.status == 'open' ? 'closed' : 'open'
-    const code = ticket.ticket_code
-    axios.put(`https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`, ticket)
-      .then((response) => {
-        cb.disabled = false
-        cb.style.cursor = 'default'
-
-        this.setState((prevState) => {
-          let array = [...prevState.tickets]
-
-          let index = array.findIndex(function (ticket) {
-            return ticket.ticket_code == code
-          })
-          array.splice(index, 1, response.data)
-          return {
-            tickets: array,
-            filterTickets: array
+    if(this.state.sort.length>0){
+      searchArray.sort((a, b)=>{
+          if(a.status > b.status){
+            return -1
+          }else if(a.status < b.status){
+            return 1
           }
 
-        })
+          return 0
       })
+    }
+
+    return searchArray
   }
 
 
   render() {
+    const filterArray = this.applyFilters()
     return (
       <div class="m-4">
-        <Header length={this.state.filterTickets.length} handleFilterChange={this.handleFilterChange} filter={this.state.filter} applySearch={this.applySearch} />
+        <Header
+          length={filterArray.length}
+          handleFilterChange={this.handleFilterChange}
+          filter={this.state.filter}
+          handleSearchChange={this.handleSearchChange}
+          search={this.state.search}
+        />
         <div class="row">
-          <TicketTable tickets={this.state.filterTickets} handleStatusChange={this.handleStatusChange} deleteTicket={this.deleteTicket} />
-          <TicketForm addTicket={this.addTicket} />
+          <TicketTable
+            tickets={filterArray}
+            handleStatusChange={this.handleStatusChange}
+            deleteTicket={this.deleteTicket}
+            handleSort={this.handleSort}
+            sort={this.state.sort}
+          />
+          <TicketForm
+            addTicket={this.addTicket}
+          />
         </div>
+        <Charts
+          tickets={filterArray}
+        />
       </div>
     )
   }
@@ -161,8 +165,7 @@ class App extends Component {
       .then((response) => {
         const data = response.data
         this.setState(() => ({
-          tickets: data,
-          filterTickets: data
+          tickets: data
         }))
       })
       .catch(function (err) {
