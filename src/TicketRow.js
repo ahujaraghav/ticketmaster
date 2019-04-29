@@ -30,7 +30,7 @@ class TicketRow extends React.Component {
 
         ticket.status = ticket.status == 'open' ? 'closed' : 'open'
         const code = ticket.ticket_code
-        axios.put(`https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`, ticket)
+        axios.put(`https://cors-anywhere.herokuapp.com/https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`, ticket)
             .then((response) => {
                 cb.disabled = false
 
@@ -44,7 +44,7 @@ class TicketRow extends React.Component {
 
         this.setState(()=>({deletingTicket:true}))
 
-        axios.delete(`https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`)
+        axios.delete(`https://cors-anywhere.herokuapp.com/https://dct-api-data.herokuapp.com/tickets/${code}?api_key=b441168614df4ed0`)
             .then((response) => {
                 this.setState(()=>({deletingTicket:false}))
                 if (response.data.notice == 'Successfully removed the ticket') {

@@ -39,7 +39,7 @@ class TicketForm extends React.Component {
                 priority: '',
                 message: ''
             }))
-            axios.post('https://dct-api-data.herokuapp.com/tickets?api_key=b441168614df4ed0', formData)
+            axios.post('https://cors-anywhere.herokuapp.com/https://dct-api-data.herokuapp.com/tickets?api_key=b441168614df4ed0', formData)
                 .then((response) => {
                     const errors = response.data.errors
                     if (errors) {

@@ -123,7 +123,6 @@ class App extends Component {
           return 0
       })
     }
-
     return searchArray
   }
 
@@ -160,8 +159,7 @@ class App extends Component {
 
 
   componentDidMount() {
-    console.log("did mount")
-    axios.get('https://dct-api-data.herokuapp.com/tickets?api_key=b441168614df4ed0')
+    axios.get('https://cors-anywhere.herokuapp.com/https://dct-api-data.herokuapp.com/tickets?api_key=b441168614df4ed0')
       .then((response) => {
         const data = response.data
         this.setState(() => ({
