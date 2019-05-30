@@ -17,8 +17,15 @@ class App extends Component {
       filter: 'All',
       search: '',
       sort:'',
-      isLoaded: false
+      isLoaded: false,
+      pageLoaded: false
     }
+  }
+
+  handleLoad = ()=>{
+    this.setState(()=>({
+      pageLoaded: true
+    }))
   }
 
   // ? Add Ticket
@@ -130,7 +137,9 @@ class App extends Component {
 
   render() {
     const filterArray = this.applyFilters()
+    
     return (
+      this.state.pageLoaded ? 
       <div class="m-4">
         <Header
           length={filterArray.length}
@@ -158,6 +167,13 @@ class App extends Component {
           tickets={filterArray}
         />
       </div>
+      :
+      <div 
+      className="d-flex justify-content-center align-items-center"
+      style={{height: "100vh"}}
+      >
+      <i class='fa fa-spinner fa-spin fa-5x m-2' />
+      </div>
     )
   }
 
@@ -174,7 +190,10 @@ class App extends Component {
       .catch(function (err) {
 
       })
+
+  window.addEventListener('load', this.handleLoad)
   }
+
 
 }
 
