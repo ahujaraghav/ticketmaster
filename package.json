@@ -12,6 +12,7 @@
   },
   "scripts": {
     "start": "node server.js",
+    "dev": "react-scripts start",
     "build-custom": "react-scripts build",
     "heroku-postbuild" : "npm run build-custom"
   },

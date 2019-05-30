@@ -16,7 +16,8 @@ class App extends Component {
       tickets: [],
       filter: 'All',
       search: '',
-      sort:''
+      sort:'',
+      isLoaded: false
     }
   }
 
@@ -139,13 +140,16 @@ class App extends Component {
           search={this.state.search}
         />
         <div class="row">
+
           <TicketTable
+            isLoaded = {this.state.isLoaded}
             tickets={filterArray}
             handleStatusChange={this.handleStatusChange}
             deleteTicket={this.deleteTicket}
             handleSort={this.handleSort}
             sort={this.state.sort}
           />
+        
           <TicketForm
             addTicket={this.addTicket}
           />
@@ -163,7 +167,8 @@ class App extends Component {
       .then((response) => {
         const data = response.data
         this.setState(() => ({
-          tickets: data
+          tickets: data,
+          isLoaded: true
         }))
       })
       .catch(function (err) {
